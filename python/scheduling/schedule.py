@@ -5,10 +5,17 @@ import csv
 import time
 import os
 import argparse
+import importlib
 args = sys.argv
 
 
 def alpha2num(c): return ord(c) - ord('A')
+
+def merge_dicts(table):
+    new_table = {}
+    for entry in table:
+        new_table.update(entry)
+    return new_table
 
 
 def read_formula_csv(filename):
@@ -278,61 +285,62 @@ if __name__ == "__main__":
     )
 
     # exec(open("./" + "sche_test.py", 'r', encoding="utf-8").read())
-    file_name = func_name
 
     # スケジューリングの解を保存するリスト
     solution = []
     # 分割したfomulas
     split_ope, input_value, output_value, input_num = make_split_scheduling(formulas)
     split_ope.append([])
-    os.makedirs(file_name, exist_ok=True)
-    mem_table = {}
+    os.makedirs(func_name, exist_ok=True)
+    mem_table_list = []
 
     for i in range(len(split_ope)):
         print(i, len(split_ope[i]), split_ope[i])
 
-    # pre_sche_result = solution
+    pre_sche_result = solution
 
-    # for i in range(len(split_ope)):
-    #     # pre_sche_result, split_ope = find_mistake(split_ope, i, pre_sche_result)
-    #     if len(split_ope[i]) == 0:
-    #         continue
-    #     write_file = "{0}/{0}_{1}.py".format(file_name, i)
-    #     make_pyschedule(
-    #         file_name,
-    #         formulas,
-    #         mem_table,
-    #         split_ope,
-    #         pre_sche_result,
-    #         i,
-    #         write_file,
-    #         input_value,
-    #         output_value,
-    #         mul_num,
-    #         add_num,
-    #         input_num)
-    #     print(i)
-    #     # print(split_ope[i])
-    #     # make_pyschedule(file_name, formulas, mem_table, split_ope, pre_sche_result, i, write_file, input_value, mul_num, add_num, mul_num_list, add_num_list, input_num)
-    #     exec(open(write_file).read())
-    #     if solution == []:
-    #         raise Exception("no solution found in schedule_{0}".format(i))
-    #     pre_sche_result = solution
+    i = 0
+    while i < len(split_ope):
+        if len(split_ope[i]) == 0:
+            break
+        file_name = "{}_{}".format(algo_name, i)
+        make_pyschedule(
+            func_name,
+            file_name,
+            formulas,
+            mem_table_list,
+            split_ope,
+            pre_sche_result,
+            i,
+            input_value,
+            output_value,
+            mul_num,
+            add_num,
+            input_num)
+        print(i)
+        scheduling_i = importlib.import_module("{}.{}".format(func_name, file_name))
+        solution = scheduling_i.solve()
+        if solution == []:
+            raise Exception("no solution found in schedule_{}".format(i))
+        pre_sche_result = solution
+        pre_sche_result, split_ope = find_mistake(formulas, mem_table_list, output_value, split_ope, i, solution)
+        i += 1
 
-    # end_time = time.perf_counter()
+    end_time = time.perf_counter()
+    mem_table = merge_dicts(mem_table_list)
 
-    f = open(file_name + ".txt", "w")
+    f = open("{}/result.txt".format(func_name), "w")
     print("input = ", file=f, end="")
     print(input_value, file=f)
     print("output = ", file=f, end="")
     print(output_value, file=f)
-    # print("solution = ", file=f, end="")
-    # print(solution, file=f)
-    # print("formulas = ", file=f, end="")
-    # print(formulas, file=f)
-    # print("mem_table = ", file=f, end="")
-    # print(mem_table, file=f)
-    # print("time = ", end_time - start_time)
+    print("solution = ", file=f, end="")
+    print(solution, file=f)
+    print("formulas = ", file=f, end="")
+    print(formulas, file=f)
+    print("mem_table = ", file=f, end="")
+    print(mem_table, file=f)
+    print("time = ", end_time - start_time)
 
     # for filename in os.listdir("./"):
     #     if filename.endswith(".log") and "clone" in filename:

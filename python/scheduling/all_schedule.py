@@ -6,17 +6,12 @@ import argparse
 import importlib
 import shutil
 from lib.util import read_json
-from scheduling.schedule import read_formula_csv, make_pyschedule, find_mistake
+from scheduling.schedule import read_formula_csv, make_pyschedule, find_mistake, merge_dicts
 from scheduling.split_sche import make_split_scheduling
 sys.path.append("..")
 from scheduling.debug import reproduce_memtable
 
 
-def merge_dicts(table):
-    new_table = {}
-    for entry in table:
-        new_table.update(entry)
-    return new_table
 
 def copy_and_replace_4padd(input_file, output_file):
     # ファイルをコピー
